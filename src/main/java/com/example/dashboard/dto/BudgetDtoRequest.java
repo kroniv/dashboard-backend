@@ -7,27 +7,13 @@ import lombok.Setter;
 
 @Setter
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
-public class BudgetDto {
+@AllArgsConstructor
+public class BudgetDtoRequest {
 
     private String region;
-
-    private String county;
 
     private int year;
 
     private String direction;
-
-    private long budgetSRF;
-
-    private long budgetMO;
-
-    private int grantNumber;
-
-    private long grantBudget;
-
-    private long population;
-
-    private long associationNumber;
 }

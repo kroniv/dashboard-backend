@@ -1,13 +1,12 @@
 package com.example.dashboard.api;
 
 import com.example.dashboard.dto.BudgetDto;
+import com.example.dashboard.dto.BudgetDtoRequest;
+import com.example.dashboard.dto.BudgetDtoWithCrumbs;
 import com.example.dashboard.service.budget.BudgetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,7 +19,27 @@ public class BudgetController {
 
     @CrossOrigin
     @GetMapping("/all")
-    public ResponseEntity<List<BudgetDto>> getBudgets() {
+    public ResponseEntity<List<BudgetDtoWithCrumbs>> getBudgets() {
         return ResponseEntity.ok(budgetService.getAllBudgets());
+    }
+
+    @CrossOrigin
+    @GetMapping
+    public ResponseEntity<BudgetDto> getBudget(BudgetDtoRequest request) {
+        return ResponseEntity.ok(budgetService.getBudget(request.getRegion(), request.getYear(), request.getDirection()));
+    }
+
+    @CrossOrigin
+    @PostMapping
+    public ResponseEntity<Void> postBudget(@RequestBody BudgetDto dto) {
+        budgetService.createOrUpdateBudget(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @CrossOrigin
+    @DeleteMapping
+    public ResponseEntity<Void> deleteBudget(BudgetDtoRequest request) {
+        budgetService.delete(request.getRegion(), request.getYear(), request.getDirection());
+        return ResponseEntity.noContent().build();
     }
 }

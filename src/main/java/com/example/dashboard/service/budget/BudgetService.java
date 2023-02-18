@@ -2,6 +2,7 @@ package com.example.dashboard.service.budget;
 
 import com.example.dashboard.dto.BudgetCrumbDto;
 import com.example.dashboard.dto.BudgetDto;
+import com.example.dashboard.dto.BudgetDtoWithCrumbs;
 import com.example.dashboard.entities.Budget;
 import com.example.dashboard.repositories.BudgetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,7 +20,7 @@ public class BudgetService {
     @Autowired
     BudgetRepository budgetRepository;
 
-    public List<BudgetDto> getAllBudgets() {
+    public List<BudgetDtoWithCrumbs> getAllBudgets() {
         List<Budget> allBudgets = budgetRepository.findAll();
         Map<Pair<String, Integer>, List<Budget>> groupedBudgets =
                 allBudgets
@@ -29,13 +31,36 @@ public class BudgetService {
                                         Collectors.toList()));
         return groupedBudgets.values()
                 .stream()
-                .map(this::toDto)
+                .map(this::toCrumbDto)
                 .collect(Collectors.toList());
     }
 
-    private BudgetDto toDto(List<Budget> budgets) {
+    public BudgetDto getBudget(String region, int year, String direction) {
+        Optional<Budget> findBudget = budgetRepository.findByRegionAndYearAndDirection(region, year, direction);
+        Budget budget = findBudget.orElseThrow(() -> new RuntimeException("No match in budgets"));
+        return toDto(budget);
+    }
+
+    public void createOrUpdateBudget(BudgetDto dto) {
+        Optional<Budget> findBudget = budgetRepository.findByRegionAndYearAndDirection(dto.getRegion(), dto.getYear(), dto.getDirection());
+        if (findBudget.isPresent()) {
+            Budget budgetToUpdate = findBudget.get();
+            updateBudget(budgetToUpdate, dto);
+            budgetRepository.save(budgetToUpdate);
+        } else {
+            budgetRepository.save(toEntity(dto));
+        }
+    }
+
+    public void delete(String region, int year, String direction) {
+        budgetRepository
+                .findByRegionAndYearAndDirection(region, year, direction)
+                .ifPresent(budget -> budgetRepository.delete(budget));
+    }
+
+    private BudgetDtoWithCrumbs toCrumbDto(List<Budget> budgets) {
         Budget budget = budgets.get(0);
-        return new BudgetDto(
+        return new BudgetDtoWithCrumbs(
                 budget.getRegion(),
                 budget.getCounty(),
                 budget.getYear(),
@@ -45,10 +70,10 @@ public class BudgetService {
                 budgets.stream().mapToLong(Budget::getGrantBudget).sum(),
                 budgets.stream().mapToLong(Budget::getPopulation).sum(),
                 budgets.stream().mapToLong(Budget::getAssociationNumber).sum(),
-                budgets.stream().map(this::toDto).collect(Collectors.toList()));
+                budgets.stream().map(this::toCrumbDto).collect(Collectors.toList()));
     }
 
-    private BudgetCrumbDto toDto(Budget budget) {
+    private BudgetCrumbDto toCrumbDto(Budget budget) {
         return new BudgetCrumbDto(
                 budget.getDirection(),
                 budget.getBudgetSRF(),
@@ -58,5 +83,44 @@ public class BudgetService {
                 budget.getPopulation(),
                 budget.getAssociationNumber()
         );
+    }
+
+    private BudgetDto toDto(Budget budget) {
+        return new BudgetDto(
+                budget.getRegion(),
+                budget.getCounty(),
+                budget.getYear(),
+                budget.getDirection(),
+                budget.getBudgetSRF(),
+                budget.getBudgetMO(),
+                budget.getGrantNumber(),
+                budget.getGrantBudget(),
+                budget.getPopulation(),
+                budget.getAssociationNumber()
+        );
+    }
+
+    private Budget toEntity(BudgetDto dto) {
+        return new Budget(
+                dto.getRegion(),
+                dto.getCounty(),
+                dto.getYear(),
+                dto.getDirection(),
+                dto.getBudgetSRF(),
+                dto.getBudgetMO(),
+                dto.getGrantNumber(),
+                dto.getGrantBudget(),
+                dto.getPopulation(),
+                dto.getAssociationNumber()
+        );
+    }
+
+    private void updateBudget(Budget budgetToUpdate, BudgetDto newBudget) {
+        budgetToUpdate.setBudgetSRF(newBudget.getBudgetSRF());
+        budgetToUpdate.setBudgetMO(newBudget.getBudgetMO());
+        budgetToUpdate.setGrantNumber(newBudget.getGrantNumber());
+        budgetToUpdate.setGrantBudget(newBudget.getGrantBudget());
+        budgetToUpdate.setPopulation(newBudget.getPopulation());
+        budgetToUpdate.setAssociationNumber(newBudget.getAssociationNumber());
     }
 }

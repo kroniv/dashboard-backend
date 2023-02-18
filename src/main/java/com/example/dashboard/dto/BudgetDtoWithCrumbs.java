@@ -5,19 +5,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
-@Getter
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
-public class BudgetDto {
+@Getter
+@Setter
+public class BudgetDtoWithCrumbs {
 
     private String region;
 
     private String county;
 
     private int year;
-
-    private String direction;
 
     private long budgetSRF;
 
@@ -30,4 +30,6 @@ public class BudgetDto {
     private long population;
 
     private long associationNumber;
+
+    private List<BudgetCrumbDto> budgetCrumbs;
 }

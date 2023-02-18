@@ -36,4 +36,17 @@ public class Budget {
     private long population;
 
     private long associationNumber;
+
+    public Budget(String region, String county, int year, String direction, long budgetSRF, long budgetMO, int grantNumber, long grantBudget, long population, long associationNumber) {
+        this.region = region;
+        this.county = county;
+        this.year = year;
+        this.direction = direction;
+        this.budgetSRF = budgetSRF;
+        this.budgetMO = budgetMO;
+        this.grantNumber = grantNumber;
+        this.grantBudget = grantBudget;
+        this.population = population;
+        this.associationNumber = associationNumber;
+    }
 }
