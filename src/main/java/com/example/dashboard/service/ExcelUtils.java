@@ -7,7 +7,7 @@ import org.apache.poi.ss.usermodel.Row;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class FileUtils {
+public class ExcelUtils {
 
     private static final String EMPTY_STRING = "";
 
@@ -49,5 +49,21 @@ public class FileUtils {
             return 0.0;
         }
         return cell.getNumericCellValue();
+    }
+
+    public static long getLongSum(List<Row> rows, int valueIdx, int startIdx, int count) {
+        long result = 0;
+        for (int i = startIdx; i < startIdx + count; i++) {
+            result += getNumericValue(rows.get(i).getCell(valueIdx)).longValue();
+        }
+        return result;
+    }
+
+    public static int getIntSum(List<Row> rows, int valueIdx, int startIdx, int count) {
+        int result = 0;
+        for (int i = startIdx; i < startIdx + count; i++) {
+            result += getNumericValue(rows.get(i).getCell(valueIdx)).intValue();
+        }
+        return result;
     }
 }
