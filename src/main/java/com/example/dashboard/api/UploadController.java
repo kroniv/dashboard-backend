@@ -29,7 +29,9 @@ public class UploadController {
     String orgName = file.getOriginalFilename();
     String filePath = PATH_TO_SAVE_FILE + orgName;
     File dest = new File(filePath);
-    file.transferTo(dest);
+    if (!dest.exists()) {
+      file.transferTo(dest);
+    }
     return "The file is uploaded successfully " + System.getProperty("user.dir");
   }
 }
