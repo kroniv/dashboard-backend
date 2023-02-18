@@ -1,0 +1,33 @@
+<html xmlns:form="http://www.w3.org/1999/xhtml" lang="eng">
+<body>
+
+<form method="POST" action="/excel/upload" enctype="multipart/form-data">
+    <table>
+        <tr>
+            <td>
+                <form:label path="file">Select a file to upload</form:label>
+            </td>
+            <td><input type="file" name="file"/></td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Submit"/></td>
+        </tr>
+    </table>
+</form>
+
+<form method="POST" action="/excel/save" enctype="multipart/form-data">
+    <table>
+        <tr>
+            <td>
+                <form:label path="file">Select a file to save</form:label>
+            </td>
+            <td><input type="file" name="file"/></td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Submit"/></td>
+        </tr>
+    </table>
+</form>
+
+</body>
+</html>

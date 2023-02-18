@@ -1,31 +1,38 @@
 package com.example.dashboard.service;
 
-import static com.example.dashboard.Config.PATH_TO_SAVE_FILE;
-import static com.example.dashboard.service.FileUtils.*;
-
-import com.example.dashboard.dto.ExcelRow;
 import com.example.dashboard.entities.Budget;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.StreamSupport;
+
+import static com.example.dashboard.Config.PATH_TO_SAVE_FILE;
+import static com.example.dashboard.service.ExcelUtils.*;
 
 @Service
 public class FileService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    public String saveFile(MultipartFile file) throws IOException {
+        String orgName = file.getOriginalFilename();
+        String filePath = PATH_TO_SAVE_FILE + UUID.randomUUID() + "_" + orgName;
+        System.out.println(filePath);
+        File dest = new File(filePath);
+        file.transferTo(dest);
+        return filePath;
+    }
 
     public String getSerializedFile(String fileName) throws IOException {
         File file = new File(PATH_TO_SAVE_FILE + fileName);
