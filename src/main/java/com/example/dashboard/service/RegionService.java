@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class RegionService {
 
-  @Autowired
+  @Autowired(required = false)
   RegionRepository regionRepository;
 
   public void addRegion(String name) {

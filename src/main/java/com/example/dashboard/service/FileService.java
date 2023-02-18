@@ -1,70 +1,75 @@
 package com.example.dashboard.service;
 
-import static com.example.dashboard.Config.PATH_TO_SAVE_FILE;
-
-import com.example.dashboard.dto.ExcelRow;
+import com.example.dashboard.entities.Budget;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.StreamSupport;
+
+import static com.example.dashboard.Config.PATH_TO_SAVE_FILE;
+import static com.example.dashboard.service.ExcelUtils.*;
 
 @Service
 public class FileService {
 
-  private static final ObjectMapper mapper = new ObjectMapper();
-  private static final String EMPTY_STRING = "";
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-  public String getSerializedFile(String fileName) throws IOException {
-    File file = new File(PATH_TO_SAVE_FILE + fileName);
-    FileInputStream fileStream = new FileInputStream(file);
-    Workbook workbook = getWorkbook(fileStream, fileName);
-    List<Row> rows = StreamSupport
-        .stream(workbook.getSheetAt(0).spliterator(), false)
-        .toList();
-    List<String> keys = StreamSupport
-        .stream(rows.get(0).spliterator(), false)
-        .map(Cell::getStringCellValue)
-        .toList();
-    List<ExcelRow> result = new ArrayList<>();
-    rows.stream().skip(1).forEach(
-        row -> {
-          ExcelRow excelRow = new ExcelRow();
-          excelRow.setKey(getStringValue(row.getCell(0)));
-          excelRow.setKeyName(keys.get(0));
-          StreamSupport
-              .stream(row.spliterator(), false)
-              .skip(1)
-              .forEach(cell -> excelRow.put(keys.get(cell.getColumnIndex()), getStringValue(cell)));
-          result.add(excelRow);
-        }
-    );
-    return mapper.writeValueAsString(result);
-  }
-
-  private Workbook getWorkbook(FileInputStream fileStream, String fileName) throws IOException {
-    if (fileName.contains(".xlsx")) {
-      return new XSSFWorkbook(fileStream);
+    public String saveFile(MultipartFile file) throws IOException {
+        String orgName = file.getOriginalFilename();
+        String filePath = PATH_TO_SAVE_FILE + UUID.randomUUID() + "_" + orgName;
+        System.out.println(filePath);
+        File dest = new File(filePath);
+        file.transferTo(dest);
+        return filePath;
     }
-    return new HSSFWorkbook(fileStream);
-  }
 
-  private String getStringValue(Cell cell) {
-    return switch (cell.getCellType()) {
-      case STRING -> cell.getStringCellValue();
-      case NUMERIC -> String.valueOf(cell.getNumericCellValue());
-      case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
-      default -> EMPTY_STRING;
-    };
-  }
+    public String getSerializedFile(String fileName) throws IOException {
+        File file = new File(PATH_TO_SAVE_FILE + fileName);
+        FileInputStream fileStream = new FileInputStream(file);
+        Workbook workbook = getWorkbook(fileStream, fileName);
+        List<Row> rows = StreamSupport
+                .stream(workbook.getSheetAt(0).spliterator(), false)
+                .toList();
+        List<Budget> result = new ArrayList<>();
+        rows.stream()
+                .skip(1)
+                .filter(ROW_FILTER)
+                .filter(row -> row.getCell(0) != null)
+                .forEach(
+                        row -> {
+                            Budget budget = Budget.builder()
+                                    .region(getStringValue(row.getCell(0)))
+                                    .county(getStringValue(row.getCell(1)))
+                                    .year(getNumericValue(row.getCell(2)).intValue())
+                                    .direction(getStringValue(row.getCell(3)))
+                                    .budgetSRF(getNumericValue(row.getCell(5)).longValue())
+                                    .budgetMO(getNumericValue(row.getCell(6)).longValue())
+                                    .grantNumber(getNumericValue(row.getCell(7)).intValue())
+                                    .grantBudget(getNumericValue(row.getCell(8)).longValue())
+                                    .population(getNumericValue(row.getCell(9)).longValue())
+                                    .associationNumber(getNumericValue(row.getCell(9)).longValue())
+                                    .build();
+                            result.add(budget);
+                        }
+                );
+        return mapper.writeValueAsString(result);
+    }
+
+    private Workbook getWorkbook(FileInputStream fileStream, String fileName) throws IOException {
+        if (fileName.contains(".xlsx")) {
+            return new XSSFWorkbook(fileStream);
+        }
+        return new HSSFWorkbook(fileStream);
+    }
 }
